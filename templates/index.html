@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartWaste AI - Klasifikasi & Asisten Chat</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo-icon">🌿</div>
+            <h1>SmartWaste AI</h1>
+            <p>Deteksi jenis sampah & Tanya-Jawab interaktif seputar lingkungan.</p>
+        </header>
+
+        <div class="eco-fact-card">
+            <h3>🌍 Wawasan Lingkungan</h3>
+            <p>{{ random_fact }}</p>
+        </div>
+
+        <div class="upload-card">
+            <form action="/" method="POST" enctype="multipart/form-data" class="upload-form">
+                <label for="file-input" class="file-drop-area">
+                    <span class="file-msg">📁 Klik di sini untuk memilih foto sampah</span>
+                    <input id="file-input" type="file" name="file" accept="image/*" required onchange="showFileName(this)">
+                </label>
+                <button type="submit" class="btn-primary">✨ Analisis Foto Sampah</button>
+            </form>
+        </div>
+
+        {% if image_path %}
+        <div class="result-section">
+            <h2>Hasil Analisis AI</h2>
+            <div class="result-grid">
+                <div class="image-box">
+                    <img src="{{ image_path }}" alt="Uploaded Image" class="preview-img">
+                </div>
+                <div class="info-box">
+                    <div class="prediction-tag">
+                        <span>Kategori:</span> 
+                        <strong>{{ prediction }}</strong>
+                    </div>
+                    <div class="confidence-bar-container">
+                        <small>Tingkat Keyakinan AI: <strong>{{ "%.2f"|format(confidence) }}%</strong></small>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progressFill"></div>
+                        </div>
+                    </div>
+
+                    <div class="eco-advice-box">
+                        <h3>💡 Rekomendasi Pengelolaan:</h3>
+                        <p>{{ advice }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- FITUR CHATBOX INTERAKTIF -->
+        <div class="chat-section">
+            <h2>💬 Tanya Asisten Lingkungan</h2>
+            <div class="chat-box" id="chatBox">
+                <div class="chat-message bot">Halo! Ada yang ingin ditanyakan seputar cara mendaur ulang, kompos, atau pengelolaan sampah? Silakan ketik di bawah ya!</div>
+            </div>
+            <div class="chat-input-area">
+                <input type="text" id="userInput" placeholder="Ketik pertanyaanmu di sini..." onkeypress="handleKeyPress(event)">
+                <button onclick="sendMessage()">Kirim</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showFileName(input) {
+            const fileMsg = document.querySelector('.file-msg');
+            if (input.files && input.files[0]) {
+                fileMsg.textContent = "📄 Terpilih: " + input.files[0].name;
+            }
+        }
+
+        window.onload = function() {
+            const fill = document.getElementById('progressFill');
+            if (fill) {
+                fill.style.width = "{{ confidence }}%";
+            }
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        function sendMessage() {
+            const inputField = document.getElementById('userInput');
+            const message = inputField.value.trim();
+            if (!message) return;
+
+            const chatBox = document.getElementById('chatBox');
+            
+            // Tampilkan pesan user
+            chatBox.innerHTML += `<div class="chat-message user">${message}</div>`;
+            inputField.value = '';
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            // Kirim ke backend Flask via Fetch API
+            fetch('/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: message })
+            })
+            .then(res => res.json())
+            .then(data => {
+                chatBox.innerHTML += `<div class="chat-message bot">${data.reply}</div>`;
+                chatBox.scrollTop = chatBox.scrollHeight;
+            })
+            .catch(err => {
+                chatBox.innerHTML += `<div class="chat-message bot">Maaf, terjadi kesalahan koneksi.</div>`;
+            });
+        }
+    </script>
+</body>
+</html>
