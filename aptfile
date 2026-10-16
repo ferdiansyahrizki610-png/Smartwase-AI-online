@@ -2,5 +2,5 @@ libgl1-mesa-glx
 libglib2.0-0
 libxcb1
 libx11-xcb1
-libxau6
-libxdmcp6
+libsm6
+libxext6
