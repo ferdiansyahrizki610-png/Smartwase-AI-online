@@ -1,8 +1,7 @@
 import os
 os.environ["OPENCV_IO_ENABLE_OPENEXR"] = "0"
-# Mencegah OpenCV mencari X11/libxcb di environment server
 os.environ["QT_QPA_PLATFORM"] = "offscreen"
-import os
+
 import random
 from flask import Flask, render_template, request, redirect, url_for, jsonify
 from ultralytics import YOLO
